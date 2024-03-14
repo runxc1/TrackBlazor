@@ -1,0 +1,22 @@
+﻿@inherits LayoutComponentBase
+<FluentDesignTheme Mode="DesignThemeModes.Dark" OfficeColor="OfficeColor.Exchange"/>
+
+<FluentLayout>
+    <FluentHeader Style="height:40px; padding-top:0">
+    </FluentHeader>
+    <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
+        <NavMenu />
+        <FluentBodyContent Class="body-content">
+            <ErrorBoundary>
+                <ChildContent>
+                    <div class="content">
+                        @Body
+                    </div>
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    <div class="blazor-error-boundary">@ex.Message</div>
+                </ErrorContent>
+            </ErrorBoundary>
+        </FluentBodyContent>
+    </FluentStack>
+</FluentLayout>
