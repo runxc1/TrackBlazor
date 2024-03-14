@@ -37,6 +37,8 @@ jobs:
         run: dotnet publish --configuration Release --output ./_site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site/wwwroot
 
   # Deployment job
   deploy:
