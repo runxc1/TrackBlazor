@@ -4,6 +4,7 @@
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
         <FluentNavMenu Id="main-menu" Width="250" Collapsible="true" Title="Navigation menu" @bind-Expanded="expanded">
              <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Timer())" IconColor="Color.Accent">Home</FluentNavLink>
+            <FluentNavLink Href="history" Icon="@(new Icons.Regular.Size20.ClipboardDataBar())" IconColor="Color.Accent">Timer History</FluentNavLink>
              <FluentNavLink Href="about" Icon="@(new Icons.Regular.Size20.Person())" IconColor="Color.Accent">About</FluentNavLink>
         </FluentNavMenu>
     </nav>

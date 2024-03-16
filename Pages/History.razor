@@ -1,0 +1,62 @@
+﻿@page "/history"
+@using TrackBlazor.Framework
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<PageTitle>Timer History</PageTitle>
+
+@if (AllResults == null || AllResults.Count == 0)
+{
+    <h1>No Timing Results recorded</h1>
+    <p>
+        Timing Results are recorded each time you hit "Reset All" on the main timer page and will show here when you browse to this page.
+    </p>
+}
+else
+{
+    @foreach(var result in AllResults)
+    {
+        IQueryable<SplitResult> iRes = result.Results.AsQueryable();
+        <FluentCard MinimalStyle="true" Height="fit-content">
+            <div class="flexCont" style="justify-content:space-between;">
+                <h4>@result.SaveTime.ToString("g")</h4>
+                <FluentButton Appearance="Appearance.Accent" @onclick="()=> Delete(result)" IconStart="new Icons.Regular.Size24.DeleteDismiss()">Remove</FluentButton>
+            </div>
+            <FluentDataGrid Items="@iRes">
+                <PropertyColumn Property="@(r => r.Name)" Sortable="true" />
+                <PropertyColumn Property="@(r => r.Number)" Sortable="true" />
+                <PropertyColumn Property="@(r => r.Ellapsed)" Format="@timeFormat" Sortable="true" />
+                <PropertyColumn Property="@(r => r.Ellapsed)" Format="@timeFormat" Sortable="true" />
+            </FluentDataGrid>
+
+        </FluentCard>
+
+    }
+
+}
+
+
+@code {
+    List<SplitResults>? AllResults = null;
+    private async Task Delete(SplitResults res)
+    {
+        if(AllResults != null)
+        {
+            AllResults.Remove(res);
+            await localStorage.SetItemAsync<List<SplitResults>>("SplitResults", AllResults);
+        }
+    }
+    string timeFormat = @"mm\:ss\.ff";
+
+    protected override async Task OnInitializedAsync()
+    {
+        AllResults = await localStorage.GetItemAsync<List<SplitResults>>("SplitResults");
+        Console.WriteLine("OnInitialized");
+        StateHasChanged();
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        AllResults = await localStorage.GetItemAsync<List<SplitResults>>("SplitResults");
+        Console.WriteLine("OnParametersSetAsync");
+        StateHasChanged();
+    }
+}

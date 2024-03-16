@@ -62,9 +62,24 @@ body {
     --bs-form-valid-border-color: #75b798;
     --bs-form-invalid-color: #ea868f;
     --bs-form-invalid-border-color: #ea868f;
+
+    --track-split-min-height: 120px;
 }
-header.header{
-    height:40px;
+.flexCont {
+    display: flex;
+    flex-wrap: nowrap;
+    align-content: flex-start;
+}
+
+div.splitCont{
+    min-height: var(--track-split-min-height);
+}
+.bottom-button {
+    height: 50px;
+    font-size: 18px
+}
+header.header {
+    height: 40px;
 }
 .navmenu-icon {
     display: none;
