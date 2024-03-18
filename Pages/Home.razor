@@ -68,7 +68,7 @@
     </div>
 
     <div class="flexCont" style="gap:15px; justify-content:space-between">
-        <FluentButton Class="bottom-button" Appearance="Appearance.Accent" @onclick="ResetAll" IconStart="new Icons.Regular.Size24.ArrowReset()">Reset All</FluentButton>
+        <FluentButton Class="bottom-button" Appearance="Appearance.Accent" @onclick="ResetAll" IconStart="new Icons.Regular.Size24.ArrowReset()">Reset</FluentButton>
         <FluentButton Class="bottom-button" Appearance="Appearance.Accent" @onclick="switchEditMode" IconStart="new Icons.Regular.Size24.LauncherSettings()">Settings</FluentButton>
         <FluentButton Class="bottom-button" Appearance="Appearance.Accent" @onclick="StartStopAll" IconStart="StartStopIcon"> @StartStop</FluentButton>
 
@@ -140,7 +140,7 @@
     {
         get
         {
-            return allStarted ? "Stop All" : "Start All";
+            return allStarted ? "Stop" : "Start";
         }
     }
     Icon StartStopIcon
