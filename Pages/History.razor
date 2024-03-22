@@ -24,7 +24,7 @@ else
             <FluentDataGrid Items="@iRes">
                 <PropertyColumn Property="@(r => r.Name)" Sortable="true" />
                 <PropertyColumn Property="@(r => r.Number)" Sortable="true" />
-                <PropertyColumn Property="@(r => r.Ellapsed)" Format="@timeFormat" Sortable="true" />
+                <PropertyColumn Property="@(r => r.SplitTime)" Format="@timeFormat" Sortable="true" />
                 <PropertyColumn Property="@(r => r.Ellapsed)" Format="@timeFormat" Sortable="true" />
             </FluentDataGrid>
 

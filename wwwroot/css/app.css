@@ -70,8 +70,13 @@ body {
     flex-wrap: nowrap;
     align-content: flex-start;
 }
-
-div.splitCont{
+div.take-split {
+    border: 1px solid var(--accent-fill-rest);
+}
+div.ind-buttons fluent-button {
+    width: 75px;
+}
+div.splitCont {
     min-height: var(--track-split-min-height);
 }
 .bottom-button {
