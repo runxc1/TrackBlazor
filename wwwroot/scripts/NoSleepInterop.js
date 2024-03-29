@@ -1,17 +1,23 @@
 // https://github.com/richtr/NoSleep.js/
 const noSleep = new NoSleep();
-
-function noSleepEnable() {
+let running = false;
+function noSleepSetup() {
     // Enable wake lock.
     // (must be wrapped in a user input event handler e.g. a mouse or touch handler)
-    document.addEventListener('click', function enableNoSleep() {
-        document.removeEventListener('click', enableNoSleep, false);
-        noSleep.enable();
+
+    document.querySelector(".startStop").addEventListener('click', function enableNoSleep() {
+        if (!running) {
+            noSleep.enable();
+        }
+        else {
+            noSleep.disable();
+        }
+        running = !running;
     }, false);
 }
 
 function noSleepDisable() {
-    // Disable wake lock at some point in the future.
-    // (does not need to be wrapped in any user input event handler)
     noSleep.disable();
+    running = false;
 }
+

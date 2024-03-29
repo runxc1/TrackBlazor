@@ -83,7 +83,7 @@
     <div class="flexCont" style="gap:9px; justify-content:space-between">
         <FluentButton Class="bottom-button" Appearance="Appearance.Accent" @onclick="ResetAll" IconStart="new Icons.Regular.Size24.ArrowReset()">Save</FluentButton>
         <div style="flex:1 0;">
-            <FluentButton Style="width:100%" Class="bottom-button" Appearance="Appearance.Accent" @onclick="StartStopAll" IconStart="StartStopIcon">@StartStop All</FluentButton>
+            <FluentButton Style="width:100%" Class="bottom-button startStop" Appearance="Appearance.Accent" @onclick="StartStopAll" IconStart="StartStopIcon">@StartStop All</FluentButton>
         </div>
         <FluentButton Style="width:50px;" Class="bottom-button" Appearance="Appearance.Accent" @onclick="switchEditMode" IconEnd="new Icons.Regular.Size24.LauncherSettings()"></FluentButton>
     </div>
@@ -135,7 +135,6 @@
        
     </FluentCard>
 </div>
-
 
 
 <style>
@@ -195,7 +194,7 @@
             }
         }
     }
-    private async Task StartStopAll()
+    private void StartStopAll()
     {
         if (!allStarted)
         {
@@ -203,7 +202,6 @@
             {
                 t.Start();
             });
-             await JsInterop.EnableNoSleep(JS);
         }
         else
         {
@@ -211,8 +209,6 @@
             {
                 t.Stop();
             });
-            await JsInterop.DisableNoSleep(JS);
-
         }
         allStarted = !allStarted;
     }
@@ -263,6 +259,7 @@
     protected override void OnInitialized()
     {
         RunTimer();  // fire-and-forget
+        Task.Run(async () => await JsInterop.noSleepSetup(JS));
     }
 
     async void RunTimer()
@@ -273,6 +270,8 @@
     public void Dispose()
     {
         periodicTimer?.Dispose();
+        Task.Run(async () => await JsInterop.DisableNoSleep(JS));
+
     }
    
 }

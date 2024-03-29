@@ -9,8 +9,8 @@ namespace TrackBlazor.Framework
 {
     public static class JsInterop
     {
-        public static ValueTask<string> EnableNoSleep(IJSRuntime jsRuntime)
-          => jsRuntime.InvokeAsync<string>("noSleepEnable");
+        public static ValueTask<string> noSleepSetup(IJSRuntime jsRuntime)
+          => jsRuntime.InvokeAsync<string>("noSleepSetup");
 
         public static ValueTask<string> DisableNoSleep(IJSRuntime jsRuntime)
         => jsRuntime.InvokeAsync<string>("noSleepDisable");
