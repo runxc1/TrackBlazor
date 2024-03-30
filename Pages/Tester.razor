@@ -1,0 +1,277 @@
+﻿@page "/test"
+@using TrackBlazor.Framework
+@using System.Diagnostics
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<PageTitle>Multi Athlete Track Timer</PageTitle>
+<div class="minimalPadding" style="@(editMode ? "display:none;":"")">
+    <div style="padding-top:10px; min-height: 75vh;">
+        <FluentGrid Spacing="1" Justify="JustifyContent.FlexStart">
+            @foreach (var timer in timers)
+            {
+                <FluentGridItem xs="6">
+                    <FluentCard MinimalStyle="true" Class="take-split">
+                        <div @onclick="() => TryTakeSplit(timer)">
+                            <h6 style="text-align: center; margin-bottom:2px">@timer.Name</h6>
+                            <div class="flexCont" style="justify-content:space-between;">
+                                <div style="min-width:100px; font-size:26px;">@timer.Stopwatch.Elapsed.ToString(timeFormat)</div>
+                            </div>
+                            <hr style="margin:4px 2px;" />
+                            <div class="splitCont">
+                                <div class="flexCont">
+                                    <div class="num"></div>
+                                    <div class="column">@timer.ElapsedSinceLast.ToString(timeFormat)</div>
+                                    <div class="column"></div>
+                                </div>
+                                @if (settings.DisplayTrending && timer.Splits != null && timer.Splits.Any())
+                                {
+                                    <div class="flexCont">
+                                        <div class="num"></div>
+                                        <div class="column">Trending</div>
+                                        <div class="column">@settings.GetTrending(timer.Splits.Count, timer.Splits.Last().Ellapsed, timer.Splits.Last().SplitTime).ToString(timeFormat)</div>
+                                    </div>
+                                }
+                                @for (var s = timer.Splits.Count; s > 0; s--)
+                                {
+                                    var split = timer.Splits[s - 1];
+                                    <div class="flexCont">
+                                        <div class="num">@s</div>
+                                        <div class="column">@split.SplitTime.ToString(timeFormat)</div>
+                                        <div class="column">@split.Ellapsed.ToString(timeFormat)</div>
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+
+                        <hr style="margin:4px; 2px;" />
+                        <div class="flexCont ind-buttons" style="justify-content:space-between;">
+                            <div>
+                                @if (@timer.Stopwatch.IsRunning)
+                                {
+                                    <FluentButton Class="access" @onclick="timer.Stopwatch.Stop" IconEnd="new Icons.Regular.Size24.Stop()"></FluentButton>
+                                }
+                                else
+                                {
+                                    <FluentButton Appearance="Appearance.Accent" @onclick="timer.Stopwatch.Start" IconEnd="new Icons.Regular.Size24.PlayCircle()"></FluentButton>
+                                }
+                            </div>
+                            <div>
+
+                            </div>
+                            <div>
+                                @if (@timer.Stopwatch.IsRunning)
+                                {
+                                    <FluentButton Appearance="Appearance.Accent" @onclick="timer.TakeSplit">Lap</FluentButton>
+                                }
+                                else
+                                {
+                                    <FluentButton Appearance="Appearance.Accent" @onclick="timer.Reset" IconEnd="new Icons.Regular.Size24.ArrowReset()"></FluentButton>
+                                }
+                            </div>
+                        </div>
+                    </FluentCard>
+                </FluentGridItem>
+            }
+        </FluentGrid>
+
+    </div>
+
+    <div class="flexCont" style="gap:9px; justify-content:space-between">
+        <FluentButton Class="bottom-button" Appearance="Appearance.Accent" @onclick="ResetAll" IconStart="new Icons.Regular.Size24.ArrowReset()">Save</FluentButton>
+        <div style="flex:1 0;">
+            <FluentButton Style="width:100%" Class="bottom-button startStop" Appearance="Appearance.Accent" @onclick="StartStopAll" IconStart="StartStopIcon">@StartStop All</FluentButton>
+        </div>
+        <FluentButton Style="width:50px;" Class="bottom-button" Appearance="Appearance.Accent" @onclick="switchEditMode" IconEnd="new Icons.Regular.Size24.LauncherSettings()"></FluentButton>
+    </div>
+</div>
+
+<div style="@(editMode ? "": "display:none;")">
+    <FluentCard MinimalStyle="true">
+        <div style="top:10px; right:10px; position: absolute;">
+            <FluentButton Appearance="Appearance.Accent" @onclick="switchEditMode" IconEnd="new Icons.Regular.Size24.SaveArrowRight()" >
+            </FluentButton>
+        </div>
+        <h4>Settings</h4>
+        <FluentStack Orientation="Orientation.Vertical">
+            <div>
+                <FluentCheckbox Label="Clicking split panel takes a split" @bind-Value=settings.ClickSplitToTakeSplit></FluentCheckbox>
+            </div>
+            <div>
+                <FluentCheckbox Label="Display Trending Time" @bind-Value=settings.DisplayTrending></FluentCheckbox>
+            </div>
+            @if (settings.DisplayTrending)
+            {
+                <div class="flexCont" style="gap:5px;">
+                    <div>
+                        <FluentNumberField @bind-Value="settings.TrendingSplitDistance" Min="0.01" Label="Split Distance"></FluentNumberField>
+                    </div>
+                </div>
+                <div class="flexCont" style="gap:5px;">
+                    <div>
+                        <FluentNumberField @bind-Value="settings.TrendingTotalDistance" Min="0.01" Label="Race Distance"></FluentNumberField>
+                    </div>
+                </div>
+            }
+            <h4 style="padding-top:15px;">Timer Names</h4>
+            @foreach (var timer in timers)
+            {
+                <div class="flexCont" style="gap:5px;">
+                    <div>
+                        <FluentTextField @bind-Value="timer.Name" Placeholder="@($"Stopwatch #" + timers.IndexOf(timer))"></FluentTextField>
+                    </div>
+                    <div>
+                        <FluentButton Class="access" BackgroundColor="--bs-warning-bg-subtle" back @onclick="(()=> timers.Remove(timer))" IconEnd="new Icons.Regular.Size24.Delete()"></FluentButton>
+                    </div>
+                </div>
+            }
+            <div style="padding-top:5px;">
+                <FluentButton Appearance="Appearance.Accent" @onclick="AddTimer" IconStart="new Icons.Regular.Size24.AddCircle()">Add Timer</FluentButton>
+            </div>
+        </FluentStack>
+       
+    </FluentCard>
+</div>
+
+
+<style>
+    div.minimalPadding div.fluent-card-minimal-style {
+        padding: 2px 5px 2px 5px;
+    }
+
+    div.minimalPadding div.fluent-card-minimal-style {
+        padding: 2px 5px 2px 5px;
+    }
+
+    
+    .column {
+        flex: 0 0 calc(50% - 10px);
+        align-self: flex-start;
+    }
+
+    .num {
+        flex: 0 0 20px;
+    }
+</style>
+
+@code {
+    private int currentCount = 6;
+    string timeFormat = @"mm\:ss\.ff";
+    bool editMode = false;
+    TimerSettings settings = new TimerSettings();
+    List<PausableTimer> timers = new List<PausableTimer>()
+    {
+        new PausableTimer("Runner-1"),new PausableTimer("Runner-2"),new PausableTimer("Runner-3"),new PausableTimer("Runner-4")
+    };
+    bool allStarted = false;
+    Icon playIcon = new Icons.Regular.Size24.PlayCircle();
+    Icon stopIcon = new Icons.Regular.Size24.Stop();
+
+    string StartStop
+    {
+        get
+        {
+            return allStarted ? "Stop" : "Start";
+        }
+    }
+    Icon StartStopIcon
+    {
+        get
+        {
+            return allStarted ? stopIcon: playIcon;
+        }
+    }
+    private void TryTakeSplit(PausableTimer timer)
+    {
+        if (settings.ClickSplitToTakeSplit)
+        {
+            if(timer.Stopwatch.IsRunning)
+            {
+                timer.TakeSplit();         
+            }
+        }
+    }
+    private void StartStopAll()
+    {
+        if (!allStarted)
+        {
+            Parallel.ForEach(timers, (t) =>
+            {
+                t.Start();
+            });
+        }
+        else
+        {
+            Parallel.ForEach(timers, (t) =>
+            {
+                t.Stop();
+            });
+        }
+        allStarted = !allStarted;
+    }
+    private async Task AddSplitResult(SplitResults sr)
+    {
+        List<SplitResults>? allResults = await localStorage.GetItemAsync<List<SplitResults>>("SplitResults");
+        if (allResults == null)
+            allResults = new List<SplitResults>();
+        allResults.Insert(0,sr);
+
+        await localStorage.SetItemAsync("SplitResults", allResults);
+
+    }
+    private async Task ResetAll()
+    {
+        var sr = new SplitResults();
+        sr.SaveTime = DateTime.Now;
+        foreach(var t in timers)
+        {
+            foreach(var split in t.Splits)
+            {
+                var splitRes = new SplitResult();
+                splitRes.Ellapsed = split.Ellapsed;
+                splitRes.SplitTime = split.SplitTime;
+                splitRes.Number = t.Splits.IndexOf(split) + 1;
+                splitRes.Name = t.Name;
+                sr.Results.Add(splitRes);
+            }
+            t.Reset();
+        }
+        allStarted = false;
+        await AddSplitResult(sr);
+        
+        ToastService.ShowSuccess("Saved to History", topAction: "History", 
+        callback: EventCallback.Factory.Create<ToastResult>(this, () => Navigation.NavigateTo("history")));
+        await JsInterop.DisableNoSleep(JS);
+    }
+    private void switchEditMode()
+    {
+        editMode = !editMode;
+    }
+    private void AddTimer()
+    {
+        timers.Add(new PausableTimer("Runner-" + ++currentCount));
+    }
+    PeriodicTimer periodicTimer = new(TimeSpan.FromMilliseconds(20));
+
+    protected override void OnInitialized()
+    {
+        RunTimer();  // fire-and-forget
+        Task.Run(async () => await JsInterop.noSleepSetup(JS));
+    }
+
+    async void RunTimer()
+    {
+        while (await periodicTimer.WaitForNextTickAsync()) { StateHasChanged(); }
+    }
+
+    public void Dispose()
+    {
+        periodicTimer?.Dispose();
+        Task.Run(async () => await JsInterop.DisableNoSleep(JS));
+
+    }
+   
+}
