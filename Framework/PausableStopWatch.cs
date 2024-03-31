@@ -13,11 +13,11 @@ namespace TrackBlazor.Framework
         private long _ticksMarker = 0;
         public void Start()
         {
-            _ticksMarker = Environment.TickCount;
+            _ticksMarker = DateTime.UtcNow.Ticks;
         }
         public void Stop()
         {
-            var now = Environment.TickCount;
+            var now = DateTime.UtcNow.Ticks;
             if(_ticksMarker > 0)
             {
                 _totalTicks += now - _ticksMarker;
@@ -42,11 +42,11 @@ namespace TrackBlazor.Framework
         {
             get
             {
-                var now = Environment.TickCount;
+                var now = DateTime.UtcNow.Ticks;
                 var elapsed = _totalTicks;
                 if (_ticksMarker > 0)
                     elapsed += now - _ticksMarker;
-                return TimeSpan.FromMilliseconds(elapsed);
+                return new TimeSpan(elapsed);
             }
         }
     }
