@@ -14,7 +14,7 @@
             {
                 <FluentGridItem xs="6">
                     <FluentCard MinimalStyle="true" Class="take-split">
-                        <div @onclick="() => TryTakeSplit(timer)">
+                        <div @ontouchstart="() => TryTakeSplit(timer)">
                             <h6 style="text-align: center; margin-bottom:2px">@timer.Name</h6>
                             <div class="flexCont" style="justify-content:space-between;">
                                 <div style="min-width:100px; font-size:26px;">@timer.Stopwatch.Elapsed.ToString(timeFormat)</div>
