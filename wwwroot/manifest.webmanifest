@@ -1,11 +1,11 @@
 {
-  "name": "MyBlazorPwa",
-  "short_name": "MyBlazorPwa",
+  "name": "Multi Athlete Track Timer",
+  "short_name": "MATT",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#03173d",
+  "background_color": "#000000",
+  "theme_color": "#60c9fc",
   "prefer_related_applications": false,
   "icons": [
     {

@@ -136,7 +136,7 @@
 
 </div>
 <div style="float: right; padding: 10px; 5px">
-    Version: 1.0.1
+    Version: @version
 </div>
 
 <style>
@@ -163,6 +163,7 @@
     private int currentCount = 6;
     string timeFormat = @"mm\:ss\.ff";
     bool editMode = false;
+    decimal version = 1.01M;
     TimerSettings settings = new TimerSettings();
     List<PausableTimer> timers = new List<PausableTimer>()
     {
