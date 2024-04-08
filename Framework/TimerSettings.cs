@@ -9,6 +9,9 @@ namespace TrackBlazor.Framework
     public class TimerSettings
     {
         public bool ClickSplitToTakeSplit { get; set; } = true;
+
+        public bool IntervalMode { get; set; } = false;
+
         public bool DisplayTrending { get; set; } = true;
 
         public Decimal TrendingSplitDistance { get; set; } = 400;

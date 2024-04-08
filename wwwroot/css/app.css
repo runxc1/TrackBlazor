@@ -65,6 +65,17 @@ body {
 
     --track-split-min-height: 120px;
 }
+.timers_1, .timers_2 {
+    --track-split-min-height: 240px;
+}
+.currentSplit {
+    background-color: var(--neutral-stroke-layer-active);
+    font-size: 16px;
+    line-height: 18px;
+}
+div.splitCont .flexCont:nth-child(odd) {
+    background-color: var(--neutral-stroke-layer-active);
+}
 .flexCont {
     display: flex;
     flex-wrap: nowrap;
@@ -78,6 +89,10 @@ div.ind-buttons fluent-button {
 }
 div.splitCont {
     min-height: var(--track-split-min-height);
+    margin: -5px -3px;
+}
+div.splitCont > *{
+    padding-left: 3px;
 }
 .bottom-button {
     height: 50px;

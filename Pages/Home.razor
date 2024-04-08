@@ -7,12 +7,12 @@
 @inject IJSRuntime JS
 
 <PageTitle>Multi Athlete Track Timer</PageTitle>
-<div class="minimalPadding" style="@(editMode ? "display:none;":"")">
+<div class="minimalPadding timers_@(timers.Count)" style="@(editMode ? "display:none;":"")">
     <div style="padding-top:10px; min-height: 75vh;">
         <FluentGrid Spacing="1" Justify="JustifyContent.FlexStart">
             @foreach (var timer in timers)
             {
-                <FluentGridItem xs="6">
+                <FluentGridItem xs="timers.Count == 1 ? 12 : 6">
                     <FluentCard MinimalStyle="true" Class="take-split">
                         <div @ontouchstart="() => TryTakeSplit(timer)">
                             <h6 style="text-align: center; margin-bottom:2px">@timer.Name</h6>
@@ -21,8 +21,8 @@
                             </div>
                             <hr style="margin:4px 2px;" />
                             <div class="splitCont">
-                                <div class="flexCont">
-                                    <div class="num"></div>
+                                <div class="flexCont currentSplit">
+                                    <div class="num">@DisplayTimerNum(timer.Splits.Count + 1)</div>
                                     <div class="column">@timer.ElapsedSinceLast.ToString(timeFormat)</div>
                                     <div class="column"></div>
                                 </div>
@@ -38,7 +38,7 @@
                                 {
                                     var split = timer.Splits[s - 1];
                                     <div class="flexCont">
-                                        <div class="num">@s</div>
+                                        <div class="num">@DisplayTimerNum(s)</div>
                                         <div class="column">@split.SplitTime.ToString(timeFormat)</div>
                                         <div class="column">@split.Ellapsed.ToString(timeFormat)</div>
                                     </div>
@@ -102,6 +102,9 @@
             <div>
                 <FluentCheckbox Label="Display Trending Time" @bind-Value=settings.DisplayTrending></FluentCheckbox>
             </div>
+            <div>
+                <FluentCheckbox Label="Interval Mode" @bind-Value=settings.IntervalMode></FluentCheckbox>
+            </div>
             @if (settings.DisplayTrending)
             {
                 <div class="flexCont" style="gap:5px;">
@@ -163,7 +166,7 @@
     private int currentCount = 6;
     string timeFormat = @"mm\:ss\.ff";
     bool editMode = false;
-    decimal version = 1.01M;
+    decimal version = 1.02M;
     TimerSettings settings = new TimerSettings();
     List<PausableTimer> timers = new List<PausableTimer>()
     {
@@ -172,7 +175,17 @@
     bool allStarted = false;
     Icon playIcon = new Icons.Regular.Size24.PlayCircle();
     Icon stopIcon = new Icons.Regular.Size24.Stop();
+    string DisplayTimerNum(int timerNum)
+    {
+        if (!settings.IntervalMode)
+            return timerNum.ToString();
+        if (timerNum == 0)
+            return "0";
+        else if (timerNum % 2 == 0)
+            return "-";
 
+        return ((timerNum / 2) + 1).ToString();
+    }
     string StartStop
     {
         get
@@ -249,9 +262,11 @@
         callback: EventCallback.Factory.Create<ToastResult>(this, () => Navigation.NavigateTo("history")));
         await JsInterop.DisableNoSleep(JS);
     }
-    private void switchEditMode()
+    private async Task switchEditMode()
     {
         editMode = !editMode;
+        await localStorage.SetItemAsync("TimerSettings", settings);
+
     }
     private void AddTimer()
     {
@@ -259,10 +274,18 @@
     }
     PeriodicTimer periodicTimer = new(TimeSpan.FromMilliseconds(50));
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         RunTimer();  // fire-and-forget
-        Task.Run(async () => await JsInterop.noSleepSetup(JS));
+        TimerSettings? ts = await localStorage.GetItemAsync<TimerSettings>("TimerSettings");
+        if (ts != null)
+            settings = ts;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await JsInterop.noSleepSetup(JS);
+
     }
 
     async void RunTimer()
