@@ -166,7 +166,7 @@
     private int currentCount = 6;
     string timeFormat = @"mm\:ss\.ff";
     bool editMode = false;
-    decimal version = 1.02M;
+    decimal version = 1.03M;
     TimerSettings settings = new TimerSettings();
     List<PausableTimer> timers = new List<PausableTimer>()
     {
@@ -250,6 +250,15 @@
                 splitRes.Ellapsed = split.Ellapsed;
                 splitRes.SplitTime = split.SplitTime;
                 splitRes.Number = t.Splits.IndexOf(split) + 1;
+                splitRes.Name = t.Name;
+                sr.Results.Add(splitRes);
+            }
+            if (!t.IsRunning && t.ElapsedSinceLast > TimeSpan.Zero)
+            {
+                var splitRes = new SplitResult();
+                splitRes.Ellapsed = t.Stopwatch.Elapsed;
+                splitRes.SplitTime = t.ElapsedSinceLast;
+                splitRes.Number = t.Splits.Count() + 1;
                 splitRes.Name = t.Name;
                 sr.Results.Add(splitRes);
             }

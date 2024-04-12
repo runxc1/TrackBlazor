@@ -28,6 +28,11 @@ namespace TrackBlazor.Framework
         {
             Stopwatch.Stop();
         }
+        public bool IsRunning { 
+            get{
+                return Stopwatch.IsRunning;
+            }
+        }
         public void TakeSplit()
         {
             var ts = this.Stopwatch.Elapsed;
