@@ -127,7 +127,7 @@
     }
 
     .splits-table tr:nth-child(even) {
-        background-color: #f2f2f2;
+            background-color: var(--neutral-stroke-layer-active);
     }
 
     .splits-table tr:hover {
@@ -152,6 +152,16 @@
         {
             savedPresets = presets;
         }
+        
+        // Initialize default time entries
+        timeEntries = new List<TimeEntry>
+        {
+            new TimeEntry { Name = "", TotalMinutes = 4, TotalSeconds = 30 },
+            new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 },
+            new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 30 },
+            new TimeEntry { Name = "", TotalMinutes = 6, TotalSeconds = 0 }
+        };
+        
         CalculateSplits();
     }
 
@@ -163,7 +173,7 @@
 
     private void AddTimeEntry()
     {
-        timeEntries.Add(new TimeEntry { Name = $"Runner {timeEntries.Count + 1}", TotalMinutes = 5, TotalSeconds = 0 });
+        timeEntries.Add(new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 });
         CalculateSplits();
     }
 

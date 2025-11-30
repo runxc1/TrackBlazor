@@ -21,7 +21,11 @@ namespace TrackBlazor.Framework
 
         public string GetDisplayName()
         {
-            return $"{Name}-{TotalMinutes}:{TotalSeconds:D2}";
+            var toRet = $"{TotalMinutes}:{TotalSeconds:D2}";
+
+            if (!string.IsNullOrWhiteSpace(Name))
+                toRet = toRet + "-" + Name;
+            return toRet;
         }
     }
 
