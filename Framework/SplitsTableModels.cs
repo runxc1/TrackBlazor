@@ -58,9 +58,15 @@ namespace TrackBlazor.Framework
             if (SplitTimes.TryGetValue(distance, out var time))
             {
                 if (time.TotalMinutes >= 1)
-                    return $"{(int)time.TotalMinutes}:{time.Seconds:D2}.{time.Milliseconds / 10:D2}";
+                {
+                    // Only show tenths of a second
+                    int tenths = (int)(time.Milliseconds / 100);
+                    return $"{(int)time.TotalMinutes}:{time.Seconds:D2}.{tenths}";
+                }
                 else
+                {
                     return $"{time.Seconds}.{time.Milliseconds / 10:D2}";
+                }
             }
             return "0.00";
         }

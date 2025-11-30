@@ -5,48 +5,83 @@
 
 <PageTitle>Splits Table</PageTitle>
 
-<FluentCard MinimalStyle="true" style="padding:10px 5px;">
-    <h3>Splits Calculator</h3>
+<FluentCard Class="take-split" MinimalStyle="true" style="padding:8px;">
+    <div style="margin-bottom:15px;">
+        <h4>Splits Calculator</h4>
+        
+        @if (savedPresets.Any())
+        {
+            <FluentSelect TOption="string" 
+                          @bind-Value="selectedPresetName" 
+                          @bind-Value:after="OnPresetChanged"
+                          Style="width:150px;">
+                <FluentOption TOption="string" Value="">-- Select preset --</FluentOption>
+                @foreach (var preset in savedPresets)
+                {
+                    <FluentOption TOption="string" Value="@preset.Name">@preset.Name</FluentOption>
+                }
+            </FluentSelect>
+        }
+    </div>
 
     <FluentStack Orientation="Orientation.Vertical" Style="gap:15px;">
-        
-        <!-- Distance Input Section -->
-        <div>
-            <FluentNumberField @bind-Value="distance" Min="1" Style="width:100%; margin-top:5px;" Label="Distance (meters)"></FluentNumberField>
-        </div>
-
-        <!-- Time Names Section -->
-        <div>
-            <FluentLabel>Time Names</FluentLabel>
-            @foreach (var entry in timeEntries)
-            {
-                <div class="flexCont" style="gap:5px; margin-top:5px; align-items:end;">
-                    <FluentTextField @bind-Value="entry.Name" @bind-Value:after="CalculateSplits" Placeholder="Runner Name" Style="flex:1;"></FluentTextField>
-                    <FluentNumberField @bind-Value="entry.TotalMinutes" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Min" Style="width:70px;"></FluentNumberField>
-                    <FluentNumberField @bind-Value="entry.TotalSeconds" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Sec" Style="width:70px;"></FluentNumberField>
-                    <FluentButton Appearance="Appearance.Outline" @onclick="() => RemoveTimeEntry(entry)" IconEnd="new Icons.Regular.Size20.Delete()"></FluentButton>
-                </div>
-            }
-            <FluentButton Appearance="Appearance.Accent" @onclick="AddTimeEntry" IconStart="new Icons.Regular.Size20.Add()" Style="margin-top:5px;">Add Time</FluentButton>
-        </div>
-
-        <!-- Split Distances Section -->
-        <div>
-            <FluentLabel>Split Distances (meters)</FluentLabel>
-            <div class="flexCont" style="gap:5px; flex-wrap:wrap; margin-top:5px;">
-                @foreach (var splitDist in splitDistances)
-                {
-                    <div style="display:inline-flex; align-items:center; padding:5px 10px; background-color:var(--accent-fill-rest); color:white; border-radius:4px;">
-                        <span>@splitDist</span>
-                        <FluentButton Appearance="Appearance.Lightweight" @onclick="() => RemoveSplitDistance(splitDist)" IconEnd="new Icons.Regular.Size20.Dismiss()" Style="color:white; margin-left:5px; padding:0 5px; min-width:20px;"></FluentButton>
+        <!-- Admin Section (Collapsible) -->
+        <FluentAccordion>
+            <FluentAccordionItem Heading="Admin Settings" Expanded="@isAdminExpanded">
+                <FluentStack Orientation="Orientation.Vertical" Style="gap:15px; padding:10px;">
+                    <!-- Distance Input Section -->
+                    <div>
+                        <FluentNumberField @bind-Value="distance" @bind-Value:after="CalculateSplits" Min="1" Style="width:100%; margin-top:5px;" Label="Distance (meters)"></FluentNumberField>
                     </div>
-                }
-            </div>
-            <div class="flexCont" style="gap:5px; margin-top:5px;">
-                <FluentNumberField @bind-Value="newSplitDistance" Min="1" Placeholder="Enter distance" Style="flex:1;"></FluentNumberField>
-                <FluentButton Appearance="Appearance.Accent" @onclick="AddSplitDistance">Add Split</FluentButton>
-            </div>
-        </div>
+
+                    <!-- Time Names Section -->
+                    <div>
+                        <FluentLabel>Time Names</FluentLabel>
+                        @foreach (var entry in timeEntries)
+                        {
+                            <div class="flexCont" style="gap:5px; margin-top:5px; align-items:end;">
+                                <FluentTextField @bind-Value="entry.Name" @bind-Value:after="CalculateSplits" Placeholder="Runner Name" Style="flex:1;"></FluentTextField>
+                                <FluentNumberField @bind-Value="entry.TotalMinutes" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Min" Style="width:70px;"></FluentNumberField>
+                                <FluentNumberField @bind-Value="entry.TotalSeconds" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Sec" Style="width:70px;"></FluentNumberField>
+                                <FluentButton Appearance="Appearance.Outline" @onclick="() => RemoveTimeEntry(entry)" IconEnd="new Icons.Regular.Size20.Delete()"></FluentButton>
+                            </div>
+                        }
+                        <FluentButton Appearance="Appearance.Accent" @onclick="AddTimeEntry" IconStart="new Icons.Regular.Size20.Add()" Style="margin-top:5px;">Add Time</FluentButton>
+                    </div>
+
+                    <!-- Split Distances Section -->
+                    <div>
+                        <FluentLabel>Split Distances (meters)</FluentLabel>
+                        <div class="flexCont" style="gap:5px; flex-wrap:wrap; margin-top:5px;">
+                            @foreach (var splitDist in splitDistances)
+                            {
+                                <div style="display:inline-flex; align-items:center; padding:5px 10px; background-color:var(--accent-fill-rest); color:white; border-radius:4px;">
+                                    <span>@splitDist</span>
+                                    <FluentButton Appearance="Appearance.Lightweight" @onclick="() => RemoveSplitDistance(splitDist)" IconEnd="new Icons.Regular.Size20.Dismiss()" Style="color:white; margin-left:5px; padding:0 5px; min-width:20px;"></FluentButton>
+                                </div>
+                            }
+                        </div>
+                        <div class="flexCont" style="gap:5px; margin-top:5px;">
+                            <FluentNumberField @bind-Value="newSplitDistance" Min="1" Placeholder="Enter distance" Style="flex:1;"></FluentNumberField>
+                            <FluentButton Appearance="Appearance.Accent" @onclick="AddSplitDistance">Add Split</FluentButton>
+                        </div>
+                    </div>
+
+                    <!-- Save Preset Section -->
+                    <div style="border-top:1px solid #ccc; padding-top:15px;">
+                        <FluentLabel>Save Preset</FluentLabel>
+                        <div class="flexCont" style="gap:5px; margin-top:5px;">
+                            <FluentTextField @bind-Value="presetName" Placeholder="Preset name" Style="flex:1;"></FluentTextField>
+                            <FluentButton Appearance="Appearance.Accent" @onclick="SavePreset" IconStart="new Icons.Regular.Size20.Save()">Save</FluentButton>
+                            @if (!string.IsNullOrEmpty(selectedPresetName))
+                            {
+                                <FluentButton Appearance="Appearance.Outline" @onclick="DeletePreset" IconEnd="new Icons.Regular.Size20.Delete()">Delete</FluentButton>
+                            }
+                        </div>
+                    </div>
+                </FluentStack>
+            </FluentAccordionItem>
+        </FluentAccordion>
 
         <!-- Results Table -->
         @if (calculations.Any())
@@ -77,32 +112,6 @@
                 </table>
             </div>
         }
-
-        <!-- Preset Management Section -->
-        <div style="border-top:1px solid #ccc; padding-top:15px;">
-            <FluentLabel>Preset Management</FluentLabel>
-            <div class="flexCont" style="gap:5px; margin-top:5px;">
-                <FluentTextField @bind-Value="presetName" Placeholder="Preset name" Style="flex:1;"></FluentTextField>
-                <FluentButton Appearance="Appearance.Accent" @onclick="SavePreset" IconStart="new Icons.Regular.Size20.Save()">Save</FluentButton>
-            </div>
-            
-            @if (savedPresets.Any())
-            {
-                <FluentLabel Style="margin-top:10px;">Load Preset</FluentLabel>
-                <FluentSelect TOption="string" @bind-Value="selectedPresetName" Style="width:100%; margin-top:5px;">
-                    <FluentOption TOption="string" Value="">-- Select a preset --</FluentOption>
-                    @foreach (var preset in savedPresets)
-                    {
-                        <FluentOption TOption="string" Value="@preset.Name">@preset.Name</FluentOption>
-                    }
-                </FluentSelect>
-                <div class="flexCont" style="gap:5px; margin-top:5px;">
-                    <FluentButton Appearance="Appearance.Accent" @onclick="LoadPreset" Style="flex:1;" disabled="@string.IsNullOrEmpty(selectedPresetName)">Load</FluentButton>
-                    <FluentButton Appearance="Appearance.Outline" @onclick="DeletePreset" IconEnd="new Icons.Regular.Size20.Delete()" disabled="@string.IsNullOrEmpty(selectedPresetName)">Delete</FluentButton>
-                </div>
-            }
-        </div>
-
     </FluentStack>
 </FluentCard>
 
@@ -129,10 +138,6 @@
     .splits-table tr:nth-child(even) {
             background-color: var(--neutral-stroke-layer-active);
     }
-
-    .splits-table tr:hover {
-        background-color: #e8e8e8;
-    }
 </style>
 
 @code {
@@ -141,9 +146,10 @@
     private List<int> splitDistances = new List<int> { 200, 400, 800 };
     private int newSplitDistance = 200;
     private List<SplitCalculation> calculations = new List<SplitCalculation>();
-    private string presetName = "";
+    private string presetName = "Default";
     private string selectedPresetName = "";
     private List<SplitsTablePreset> savedPresets = new List<SplitsTablePreset>();
+    private bool isAdminExpanded = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -209,6 +215,14 @@
         }
     }
 
+    private void OnPresetChanged()
+    {
+        if (!string.IsNullOrEmpty(selectedPresetName))
+        {
+            LoadPreset();
+        }
+    }
+
     private async Task SavePreset()
     {
         if (string.IsNullOrWhiteSpace(presetName))
@@ -242,7 +256,7 @@
 
         await localStorage.SetItemAsync("SplitsTablePresets", savedPresets);
         ToastService.ShowSuccess($"Preset '{presetName}' saved");
-        presetName = "";
+        selectedPresetName = presetName;
     }
 
     private void LoadPreset()
@@ -258,6 +272,7 @@
                 TotalSeconds = e.TotalSeconds 
             }).ToList();
             splitDistances = new List<int>(preset.SplitDistances);
+            presetName = preset.Name;
             CalculateSplits();
             ToastService.ShowSuccess($"Preset '{selectedPresetName}' loaded");
         }
@@ -272,6 +287,7 @@
             await localStorage.SetItemAsync("SplitsTablePresets", savedPresets);
             ToastService.ShowSuccess($"Preset '{selectedPresetName}' deleted");
             selectedPresetName = "";
+            presetName = "Default";
         }
     }
 }
