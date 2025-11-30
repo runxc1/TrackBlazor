@@ -21,9 +21,9 @@
             @foreach (var entry in timeEntries)
             {
                 <div class="flexCont" style="gap:5px; margin-top:5px; align-items:end;">
-                    <FluentTextField @bind-Value="entry.Name" Placeholder="Runner Name" Style="flex:1;"></FluentTextField>
-                    <FluentNumberField @bind-Value="entry.TotalMinutes" Min="0" Max="59" Label="Min" Style="width:70px;"></FluentNumberField>
-                    <FluentNumberField @bind-Value="entry.TotalSeconds" Min="0" Max="59" Label="Sec" Style="width:70px;"></FluentNumberField>
+                    <FluentTextField @bind-Value="entry.Name" @bind-Value:after="CalculateSplits" Placeholder="Runner Name" Style="flex:1;"></FluentTextField>
+                    <FluentNumberField @bind-Value="entry.TotalMinutes" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Min" Style="width:70px;"></FluentNumberField>
+                    <FluentNumberField @bind-Value="entry.TotalSeconds" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Sec" Style="width:70px;"></FluentNumberField>
                     <FluentButton Appearance="Appearance.Outline" @onclick="() => RemoveTimeEntry(entry)" IconEnd="new Icons.Regular.Size20.Delete()"></FluentButton>
                 </div>
             }
