@@ -1,6 +1,6 @@
 {
-  "name": "Multi Athlete Track Timer",
-  "short_name": "MATT",
+  "name": "RunXC Splits StopWatch",
+  "short_name": "RunXC Splits",
   "id": "./",
   "start_url": "./",
   "display": "standalone",
