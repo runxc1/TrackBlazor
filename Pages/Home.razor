@@ -81,6 +81,12 @@
 
     <div class="flexCont" style="gap:9px; justify-content:space-between">
         <FluentButton Class="bottom-button" Appearance="Appearance.Accent" @onclick="ResetAll">Save</FluentButton>
+        @if (AnyRunningTimers())
+        { 
+            <div style="flex:1 0;">
+                <FluentButton Style="width:100%" Class="bottom-button startStop" Appearance="Appearance.Accent" @onclick="SplitAll">Split All</FluentButton>
+            </div>
+        }
         <div style="flex:1 0;">
             <FluentButton Style="width:100%" Class="bottom-button startStop" Appearance="Appearance.Accent" @onclick="StartStopAll" IconStart="StartStopIcon">@StartStop All</FluentButton>
         </div>
@@ -166,7 +172,7 @@
     private int currentCount = 6;
     string timeFormat = @"mm\:ss\.ff";
     bool editMode = false;
-    decimal version = 1.03M;
+    decimal version = 1.04M;
     TimerSettings settings = new TimerSettings();
     List<PausableTimer> timers = new List<PausableTimer>()
     {
@@ -185,6 +191,15 @@
             return "-";
 
         return ((timerNum / 2) + 1).ToString();
+    }
+    bool AnyRunningTimers()
+    {
+        foreach (var t in timers)
+        {
+            if (t.IsRunning)
+                return true;
+        }
+        return false;
     }
     string StartStop
     {
@@ -226,6 +241,17 @@
                 t.Stop();
             });
         }
+        allStarted = !allStarted;
+    }
+    private void SplitAll()
+    {
+        Parallel.ForEach(timers, (t) =>
+           {
+               if(t.IsRunning){
+                   t.TakeSplit();
+               }
+
+           });
         allStarted = !allStarted;
     }
     private async Task AddSplitResult(SplitResults sr)
