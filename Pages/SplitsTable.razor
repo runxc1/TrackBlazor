@@ -62,7 +62,7 @@
                             }
                         </div>
                         <div class="flexCont" style="gap:5px; margin-top:5px;">
-                            <FluentNumberField @bind-Value="newSplitDistance" Min="1" Placeholder="Enter distance" Style="flex:1;"></FluentNumberField>
+                            <FluentNumberField @bind-Value="newSplitDistance" Min="1" Placeholder="Enter distance" Style="flex:0 1 100px;"></FluentNumberField>
                             <FluentButton Appearance="Appearance.Accent" @onclick="AddSplitDistance">Add Split</FluentButton>
                         </div>
                     </div>
@@ -149,7 +149,7 @@
     private string presetName = "Default";
     private string selectedPresetName = "";
     private List<SplitsTablePreset> savedPresets = new List<SplitsTablePreset>();
-    private bool isAdminExpanded = false;
+    private bool isAdminExpanded = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,7 +158,7 @@
         {
             savedPresets = presets;
         }
-        
+
         // Initialize default time entries
         timeEntries = new List<TimeEntry>
         {
@@ -167,7 +167,7 @@
             new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 30 },
             new TimeEntry { Name = "", TotalMinutes = 6, TotalSeconds = 0 }
         };
-        
+
         CalculateSplits();
     }
 
@@ -261,6 +261,7 @@
 
     private void LoadPreset()
     {
+        isAdminExpanded = false;
         var preset = savedPresets.FirstOrDefault(p => p.Name == selectedPresetName);
         if (preset != null)
         {
@@ -274,7 +275,6 @@
             splitDistances = new List<int>(preset.SplitDistances);
             presetName = preset.Name;
             CalculateSplits();
-            ToastService.ShowSuccess($"Preset '{selectedPresetName}' loaded");
         }
     }
 
