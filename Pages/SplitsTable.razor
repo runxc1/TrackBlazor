@@ -172,6 +172,7 @@
     private string selectedPresetName = "";
     private List<SplitsTablePreset> savedPresets = new List<SplitsTablePreset>();
     private bool isAdminExpanded = true;
+    private const string LastViewedPresetKey = "SplitsTableLastViewedPreset";
 
     protected override async Task OnInitializedAsync()
     {
@@ -181,16 +182,26 @@
             savedPresets = presets;
         }
 
-        // Initialize default time entries
-        timeEntries = new List<TimeEntry>
+        // Try to load the last viewed preset
+        var lastViewedPresetName = await localStorage.GetItemAsync<string>(LastViewedPresetKey);
+        if (!string.IsNullOrEmpty(lastViewedPresetName) && savedPresets.Any(p => p.Name == lastViewedPresetName))
         {
-            new TimeEntry { Name = "", TotalMinutes = 4, TotalSeconds = 30 },
-            new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 },
-            new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 30 },
-            new TimeEntry { Name = "", TotalMinutes = 6, TotalSeconds = 0 }
-        };
+            selectedPresetName = lastViewedPresetName;
+            LoadPreset();
+        }
+        else
+        {
+            // Initialize default time entries if no preset loaded
+            timeEntries = new List<TimeEntry>
+            {
+                new TimeEntry { Name = "", TotalMinutes = 4, TotalSeconds = 30 },
+                new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 },
+                new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 30 },
+                new TimeEntry { Name = "", TotalMinutes = 6, TotalSeconds = 0 }
+            };
 
-        CalculateSplits();
+            CalculateSplits();
+        }
     }
 
     private void SetDistance(int dist)
@@ -237,11 +248,31 @@
         }
     }
 
-    private void OnPresetChanged()
+    private async Task OnPresetChanged()
     {
         if (!string.IsNullOrEmpty(selectedPresetName))
         {
+            await localStorage.SetItemAsync(LastViewedPresetKey, selectedPresetName);
             LoadPreset();
+        }
+    }
+
+    private void LoadPreset()
+    {
+        isAdminExpanded = false;
+        var preset = savedPresets.FirstOrDefault(p => p.Name == selectedPresetName);
+        if (preset != null)
+        {
+            distance = preset.Distance;
+            timeEntries = preset.TimeEntries.Select(e => new TimeEntry 
+            { 
+                Name = e.Name, 
+                TotalMinutes = e.TotalMinutes, 
+                TotalSeconds = e.TotalSeconds 
+            }).ToList();
+            splitDistances = new List<int>(preset.SplitDistances);
+            presetName = preset.Name;
+            CalculateSplits();
         }
     }
 
@@ -277,27 +308,9 @@
         }
 
         await localStorage.SetItemAsync("SplitsTablePresets", savedPresets);
+        await localStorage.SetItemAsync(LastViewedPresetKey, presetName);
         ToastService.ShowSuccess($"Preset '{presetName}' saved");
         selectedPresetName = presetName;
-    }
-
-    private void LoadPreset()
-    {
-        isAdminExpanded = false;
-        var preset = savedPresets.FirstOrDefault(p => p.Name == selectedPresetName);
-        if (preset != null)
-        {
-            distance = preset.Distance;
-            timeEntries = preset.TimeEntries.Select(e => new TimeEntry 
-            { 
-                Name = e.Name, 
-                TotalMinutes = e.TotalMinutes, 
-                TotalSeconds = e.TotalSeconds 
-            }).ToList();
-            splitDistances = new List<int>(preset.SplitDistances);
-            presetName = preset.Name;
-            CalculateSplits();
-        }
     }
 
     private async Task DeletePreset()
@@ -307,6 +320,14 @@
         {
             savedPresets.Remove(preset);
             await localStorage.SetItemAsync("SplitsTablePresets", savedPresets);
+            
+            // Clear the last viewed preset if it's the one being deleted
+            var lastViewed = await localStorage.GetItemAsync<string>(LastViewedPresetKey);
+            if (lastViewed == selectedPresetName)
+            {
+                await localStorage.RemoveItemAsync(LastViewedPresetKey);
+            }
+            
             ToastService.ShowSuccess($"Preset '{selectedPresetName}' deleted");
             selectedPresetName = "";
             presetName = "Default";
