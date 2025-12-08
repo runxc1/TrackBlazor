@@ -1,6 +1,7 @@
 ﻿@page "/history"
 @using TrackBlazor.Framework
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IJSRuntime JS
 
 <PageTitle>Timer History</PageTitle>
 
@@ -19,7 +20,10 @@ else
         <FluentCard MinimalStyle="true" Height="fit-content" Style="padding:10px 5px;">
             <div class="flexCont" style="justify-content:space-between;">
                 <h4 style="margin-left:8px;">@result.SaveTime.ToString("g")</h4>
-                <FluentButton Appearance="Appearance.Accent" @onclick="()=> Delete(result)" IconStart="new Icons.Regular.Size24.DeleteDismiss()">Remove</FluentButton>
+                <div style="display:flex; gap:5px;">
+                    <FluentButton Appearance="Appearance.Outline" @onclick="()=> ExportToCSV(result)" IconStart="new Icons.Regular.Size24.ArrowDownload()">Export</FluentButton>
+                    <FluentButton Appearance="Appearance.Accent" @onclick="()=> Delete(result)" IconStart="new Icons.Regular.Size24.DeleteDismiss()">Remove</FluentButton>
+                </div>
             </div>
             <FluentDataGrid Items="@iRes" GridTemplateColumns="1fr 50px 1fr 1fr">
                 <PropertyColumn Property="@(r => r.Name)" Sortable="true" />
@@ -45,6 +49,32 @@ else
             await localStorage.SetItemAsync<List<SplitResults>>("SplitResults", AllResults);
         }
     }
+
+    private async Task ExportToCSV(SplitResults result)
+    {
+        var csv = GenerateCSV(result);
+        var filename = $"splits_{result.SaveTime:yyyy-MM-dd_HH-mm-ss}.csv";
+        await JsInterop.DownloadCSV(JS, filename, csv);
+    }
+
+    private string GenerateCSV(SplitResults result)
+    {
+        var sb = new System.Text.StringBuilder();
+        
+        sb.AppendLine("Name,Number,Split Time,Elapsed Time");
+        
+        foreach (var split in result.Results)
+        {
+            var splitTime = split.SplitTime.ToString(timeFormat);
+            var elapsedTime = split.Ellapsed.ToString(timeFormat);
+            var name = string.IsNullOrEmpty(split.Name) ? "" : split.Name;
+            
+            sb.AppendLine($"\"{name}\",{split.Number},{splitTime},{elapsedTime}");
+        }
+        
+        return sb.ToString();
+    }
+
     string timeFormat = @"mm\:ss\.ff";
 
     protected override async Task OnInitializedAsync()

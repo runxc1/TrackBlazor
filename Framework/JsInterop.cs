@@ -14,5 +14,8 @@ namespace TrackBlazor.Framework
 
         public static ValueTask<string> DisableNoSleep(IJSRuntime jsRuntime)
         => jsRuntime.InvokeAsync<string>("noSleepDisable");
+
+        public static ValueTask DownloadCSV(IJSRuntime jsRuntime, string filename, string csvContent)
+        => jsRuntime.InvokeVoidAsync("downloadCSV", filename, csvContent);
     }
 }
