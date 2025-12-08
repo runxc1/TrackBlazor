@@ -60,18 +60,26 @@ else
     private string GenerateCSV(SplitResults result)
     {
         var sb = new System.Text.StringBuilder();
-        
-        sb.AppendLine("Name,Number,Split Time,Elapsed Time");
-        
+
+        sb.AppendLine("Name,Number,Split,Elapsed,(AVG),Split*,Elapsed*");
+
         foreach (var split in result.Results)
         {
             var splitTime = split.SplitTime.ToString(timeFormat);
+            var average = result.Results.Where(r => r.Name == split.Name).Average(r => r.SplitTime.TotalMilliseconds);
+            var averageSpan = TimeSpan.FromMilliseconds(average);
+            var spanformatted = averageSpan.ToString(timeFormat);
             var elapsedTime = split.Ellapsed.ToString(timeFormat);
             var name = string.IsNullOrEmpty(split.Name) ? "" : split.Name;
-            
-            sb.AppendLine($"\"{name}\",{split.Number},{splitTime},{elapsedTime}");
+
+            sb.AppendLine($"\"{name}\",{split.Number},=\"{splitTime}\",=\"{elapsedTime}\",=\"{spanformatted}\",{splitTime},{elapsedTime}");
         }
-        
+        sb.AppendLine().AppendLine();
+
+
+
+        sb.AppendLine($"* Split and Elapsed times are included twice as the first is formatted in a way to ensure Excel displays the time correctly where as the second is usable in formulas");
+
         return sb.ToString();
     }
 
