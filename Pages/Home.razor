@@ -5,6 +5,7 @@
 @inject IToastService ToastService
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject TimerStateService timerState
 
 <PageTitle>RunXC Splits</PageTitle>
 <div class="minimalPadding timers_@(timers.Count)" style="@(editMode ? "display:none;":"")">
@@ -169,16 +170,11 @@
 </style>
 
 @code {
-    private int currentCount = 6;
     string timeFormat = @"mm\:ss\.ff";
     bool editMode = false;
     decimal version = 1.12M;
-    TimerSettings settings = new TimerSettings();
-    List<PausableTimer> timers = new List<PausableTimer>()
-    {
-        new PausableTimer("Runner-1"),new PausableTimer("Runner-2"),new PausableTimer("Runner-3"),new PausableTimer("Runner-4")
-    };
-    bool allStarted = false;
+    private List<PausableTimer> timers => timerState.Timers;
+    private TimerSettings settings => timerState.Settings;
     Icon playIcon = new Icons.Regular.Size24.PlayCircle();
     Icon stopIcon = new Icons.Regular.Size24.Stop();
     string DisplayTimerNum(int timerNum)
@@ -205,14 +201,14 @@
     {
         get
         {
-            return allStarted ? "Stop" : "Start";
+            return timerState.AllStarted ? "Stop" : "Start";
         }
     }
     Icon StartStopIcon
     {
         get
         {
-            return allStarted ? stopIcon : playIcon;
+            return timerState.AllStarted ? stopIcon : playIcon;
         }
     }
     private void TryTakeSplit(PausableTimer timer)
@@ -227,7 +223,7 @@
     }
     private void StartStopAll()
     {
-        if (!allStarted)
+        if (!timerState.AllStarted)
         {
             Parallel.ForEach(timers, (t) =>
             {
@@ -241,7 +237,7 @@
                 t.Stop();
             });
         }
-        allStarted = !allStarted;
+        timerState.AllStarted = !timerState.AllStarted;
     }
     private void SplitAll()
     {
@@ -252,7 +248,7 @@
                }
 
            });
-        allStarted = !allStarted;
+        timerState.AllStarted = !timerState.AllStarted;
     }
     private async Task AddSplitResult(SplitResults sr)
     {
@@ -290,7 +286,7 @@
             }
             t.Reset();
         }
-        allStarted = false;
+        timerState.AllStarted = false;
         await AddSplitResult(sr);
 
         ToastService.ShowSuccess("Saved to History", topAction: "History",
@@ -305,16 +301,20 @@
     }
     private void AddTimer()
     {
-        timers.Add(new PausableTimer("Runner-" + ++currentCount));
+        timerState.Timers.Add(new PausableTimer("Runner-" + ++timerState.CurrentCount));
     }
     PeriodicTimer periodicTimer = new(TimeSpan.FromMilliseconds(50));
 
     protected override async Task OnInitializedAsync()
     {
         RunTimer();  // fire-and-forget
-        TimerSettings? ts = await localStorage.GetItemAsync<TimerSettings>("TimerSettings");
-        if (ts != null)
-            settings = ts;
+        if (!timerState.IsInitialized)
+        {
+            TimerSettings? ts = await localStorage.GetItemAsync<TimerSettings>("TimerSettings");
+            if (ts != null)
+                timerState.Settings = ts;
+            timerState.IsInitialized = true;
+        }
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

@@ -5,115 +5,119 @@
 
 <PageTitle>Splits Table</PageTitle>
 
-<FluentCard Class="take-split" MinimalStyle="true" style="padding:8px;">
-    <div style="margin-bottom:15px;">
-        <h4>Splits Calculator</h4>
-        
-        @if (savedPresets.Any())
-        {
-            <FluentSelect TOption="string" 
-                          @bind-Value="selectedPresetName" 
-                          @bind-Value:after="OnPresetChanged"
-                          Style="width:150px;">
-                <FluentOption TOption="string" Value="">-- Select preset --</FluentOption>
-                @foreach (var preset in savedPresets)
-                {
-                    <FluentOption TOption="string" Value="@preset.Name">@preset.Name</FluentOption>
-                }
-            </FluentSelect>
-        }
+<div style="padding:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h4 style="margin:0;">Splits Calculator</h4>
+        <FluentButton Appearance="Appearance.Accent" @onclick="AddNewPreset" IconStart="new Icons.Regular.Size20.Add()">Add Splits</FluentButton>
     </div>
 
     <FluentStack Orientation="Orientation.Vertical" Style="gap:15px;">
-        <!-- Admin Section (Collapsible) -->
-        <FluentAccordion>
-            <FluentAccordionItem Heading="Admin Settings" Expanded="@isAdminExpanded">
-                <FluentStack Orientation="Orientation.Vertical" Style="gap:15px; padding:10px;">
-                    <!-- Distance Input Section -->
-                    <div>
-                        <FluentNumberField @bind-Value="distance" @bind-Value:after="CalculateSplits" Min="1" Style="width:100%; margin-top:5px;" Label="Distance (meters)"></FluentNumberField>
-                    </div>
-
-                    <!-- Time Names Section -->
-                    <div>
-                        <FluentLabel>Pace and Name (optional)</FluentLabel>
-                        @foreach (var entry in timeEntries)
-                        {
-                            <div class="flexCont" style="gap:5px; margin-top:5px; align-items:end;">
-                                <FluentTextField @bind-Value="entry.Name" @bind-Value:after="CalculateSplits" Placeholder="Runner Name" Style="flex:1;"></FluentTextField>
-                                <FluentNumberField @bind-Value="entry.TotalMinutes" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Min" Style="width:70px;"></FluentNumberField>
-                                <FluentNumberField @bind-Value="entry.TotalSeconds" @bind-Value:after="CalculateSplits" Min="0" Max="59" Label="Sec" Style="width:70px;"></FluentNumberField>
-                                <FluentButton Appearance="Appearance.Outline" @onclick="() => RemoveTimeEntry(entry)" IconEnd="new Icons.Regular.Size20.Delete()"></FluentButton>
-                            </div>
-                        }
-                        <FluentButton Appearance="Appearance.Accent" @onclick="AddTimeEntry" IconStart="new Icons.Regular.Size20.Add()" Style="margin-top:5px;">Add Time</FluentButton>
-                    </div>
-
-                    <!-- Split Distances Section -->
-                    <div>
-                        <FluentLabel>Split Distances (meters)</FluentLabel>
-                        <div class="flexCont" style="gap:5px; flex-wrap:wrap; margin-top:5px;">
-                            @foreach (var splitDist in splitDistances)
-                            {
-                                <div style="display:inline-flex; align-items:center; padding:5px 10px; background-color:var(--accent-fill-rest); color:white; border-radius:4px;">
-                                    <span>@splitDist</span>
-                                    <FluentButton Appearance="Appearance.Lightweight" @onclick="() => RemoveSplitDistance(splitDist)" IconEnd="new Icons.Regular.Size20.Dismiss()" Style="color:white; margin-left:5px; padding:0 5px; min-width:20px;"></FluentButton>
-                                </div>
-                            }
-                        </div>
-                        <div class="flexCont" style="gap:5px; margin-top:5px;">
-                            <FluentNumberField @bind-Value="newSplitDistance" Min="1" Placeholder="Enter distance" Style="flex:0 1 100px;"></FluentNumberField>
-                            <FluentButton Appearance="Appearance.Accent" @onclick="AddSplitDistance">Add Split</FluentButton>
-                        </div>
-                    </div>
-
-                    <!-- Save Preset Section -->
-                    <div style="border-top:1px solid #ccc; padding-top:15px;">
-                        <FluentLabel>Save Preset</FluentLabel>
-                        <div class="flexCont" style="gap:5px; margin-top:5px;">
-                            <FluentTextField @bind-Value="presetName" Placeholder="Preset name" Style="flex:1;"></FluentTextField>
-                            <FluentButton Appearance="Appearance.Accent" @onclick="SavePreset" IconStart="new Icons.Regular.Size20.Save()">Save</FluentButton>
-                            @if (!string.IsNullOrEmpty(selectedPresetName))
-                            {
-                                <FluentButton Appearance="Appearance.Outline" @onclick="DeletePreset" IconEnd="new Icons.Regular.Size20.Delete()">Delete</FluentButton>
-                            }
-                        </div>
-                    </div>
-                </FluentStack>
-            </FluentAccordionItem>
-        </FluentAccordion>
-
-        <!-- Results Table -->
-        @if (calculations.Any())
+        @foreach (var vm in presetViewModels)
         {
-            <div class="splits-table-container" style="max-width:100vw; overflow:auto;">
-                <table class="splits-table">
-                    <thead>
-                        <tr>
-                            <th class="sticky-col">@(distance)m</th>
-                            @foreach (var splitDist in splitDistances.OrderBy(d => d))
-                            {
-                                <th>@splitDist</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var calc in calculations)
+            <FluentCard MinimalStyle="true" style="padding:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+                        @if (vm.IsSettingsExpanded)
                         {
-                            <tr>
-                                <td class="sticky-col">@calc.RunnerName</td>
-                                @foreach (var splitDist in splitDistances.OrderBy(d => d))
-                                {
-                                    <td>@calc.GetFormattedTime(splitDist)</td>
-                                }
-                            </tr>
+                            <FluentTextField @bind-Value="vm.Preset.Name" Placeholder="Preset name" Style="font-weight:bold; flex:1; min-width:0;"></FluentTextField>
+                            <FluentButton Appearance="Appearance.Accent" @onclick="() => SavePresetViewModel(vm)"
+                                          IconStart="new Icons.Regular.Size20.Save()">Save</FluentButton>
                         }
-                    </tbody>
-                </table>
-            </div>
+                        else
+                        {
+                            <span style="font-weight:bold; font-size:1rem;">@(string.IsNullOrWhiteSpace(vm.Preset.Name) ? $"{vm.Preset.Distance}m" : vm.Preset.Name)</span>
+                        }
+                        <span style="font-size:0.85rem; opacity:0.7; white-space:nowrap;">@vm.Preset.Distance m</span>
+                    </div>
+                    <div style="display:flex; gap:4px; flex-shrink:0;">
+                        <FluentButton Appearance="Appearance.Lightweight" @onclick="() => ToggleSettings(vm)"
+                                      IconEnd="new Icons.Regular.Size20.Settings()" Title="Settings"></FluentButton>
+                        <FluentButton Appearance="Appearance.Lightweight" @onclick="() => DeletePresetViewModel(vm)"
+                                      IconEnd="new Icons.Regular.Size20.Delete()" Title="Delete"></FluentButton>
+                    </div>
+                </div>
+
+                @if (vm.IsSettingsExpanded)
+                {
+                    <div style="border:1px solid var(--neutral-stroke-rest); border-radius:4px; padding:10px; margin-bottom:10px;">
+                        <FluentStack Orientation="Orientation.Vertical" Style="gap:12px;">
+                            <FluentNumberField @bind-Value="vm.Preset.Distance" @bind-Value:after="() => RecalculatePreset(vm)"
+                                               Min="1" Style="width:100%;" Label="Distance (meters)"></FluentNumberField>
+
+                            <div>
+                                <FluentLabel>Pace and Name (optional)</FluentLabel>
+                                @foreach (var entry in vm.Preset.TimeEntries)
+                                {
+                                    <div class="flexCont" style="gap:5px; margin-top:5px; align-items:end;">
+                                        <FluentTextField @bind-Value="entry.Name" @bind-Value:after="() => RecalculatePreset(vm)"
+                                                         Placeholder="Runner Name" Style="flex:1;"></FluentTextField>
+                                        <FluentNumberField @bind-Value="entry.TotalMinutes" @bind-Value:after="() => RecalculatePreset(vm)"
+                                                           Min="0" Max="59" Label="Min" Style="width:70px;"></FluentNumberField>
+                                        <FluentNumberField @bind-Value="entry.TotalSeconds" @bind-Value:after="() => RecalculatePreset(vm)"
+                                                           Min="0" Max="59" Label="Sec" Style="width:70px;"></FluentNumberField>
+                                        <FluentButton Appearance="Appearance.Outline" @onclick="() => RemoveTimeEntryFromPreset(vm, entry)"
+                                                      IconEnd="new Icons.Regular.Size20.Delete()"></FluentButton>
+                                    </div>
+                                }
+                                <FluentButton Appearance="Appearance.Accent" @onclick="() => AddTimeEntryToPreset(vm)"
+                                              IconStart="new Icons.Regular.Size20.Add()" Style="margin-top:5px;">Add Time</FluentButton>
+                            </div>
+
+                            <div>
+                                <FluentLabel>Split Distances (meters)</FluentLabel>
+                                <div class="flexCont" style="gap:5px; flex-wrap:wrap; margin-top:5px;">
+                                    @foreach (var splitDist in vm.Preset.SplitDistances.OrderBy(d => d))
+                                    {
+                                        <div style="display:inline-flex; align-items:center; padding:5px 10px; background-color:var(--accent-fill-rest); color:white; border-radius:4px;">
+                                            <span>@splitDist</span>
+                                            <FluentButton Appearance="Appearance.Lightweight" @onclick="() => RemoveSplitFromPreset(vm, splitDist)"
+                                                          IconEnd="new Icons.Regular.Size20.Dismiss()" Style="color:white; margin-left:5px; padding:0 5px; min-width:20px;"></FluentButton>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="flexCont" style="gap:5px; margin-top:5px;">
+                                    <FluentNumberField @bind-Value="vm.NewSplitDistance" Min="1"
+                                                       Placeholder="Enter distance" Style="flex:0 1 100px;"></FluentNumberField>
+                                    <FluentButton Appearance="Appearance.Accent" @onclick="() => AddSplitToPreset(vm)">Add Split</FluentButton>
+                                </div>
+                            </div>
+
+                            </FluentStack>
+                    </div>
+                }
+
+                @if (vm.Calculations.Any())
+                {
+                    <div class="splits-table-container">
+                        <table class="splits-table">
+                            <thead>
+                                <tr>
+                                    <th class="sticky-col">@(vm.Preset.Distance)m</th>
+                                    @foreach (var splitDist in vm.Preset.SplitDistances.OrderBy(d => d))
+                                    {
+                                        <th>@splitDist</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var calc in vm.Calculations)
+                                {
+                                    <tr>
+                                        <td class="sticky-col">@calc.RunnerName</td>
+                                        @foreach (var splitDist in vm.Preset.SplitDistances.OrderBy(d => d))
+                                        {
+                                            <td>@calc.GetFormattedTime(splitDist)</td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </FluentCard>
         }
     </FluentStack>
-</FluentCard>
+</div>
 
 <style>
     .splits-table {
@@ -163,174 +167,179 @@
 </style>
 
 @code {
-    private int distance = 1600;
-    private List<TimeEntry> timeEntries = new List<TimeEntry>();
-    private List<int> splitDistances = new List<int> { 200, 400, 800 };
-    private int newSplitDistance = 200;
-    private List<SplitCalculation> calculations = new List<SplitCalculation>();
-    private string presetName = "Default";
-    private string selectedPresetName = "";
-    private List<SplitsTablePreset> savedPresets = new List<SplitsTablePreset>();
-    private bool isAdminExpanded = true;
+    private List<PresetViewModel> presetViewModels = new();
     private const string LastViewedPresetKey = "SplitsTableLastViewedPreset";
+
+    private class PresetViewModel
+    {
+        public SplitsTablePreset Preset { get; set; } = new();
+        public bool IsSettingsExpanded { get; set; }
+        public int NewSplitDistance { get; set; } = 200;
+        public List<SplitCalculation> Calculations { get; set; } = new();
+        public bool IsNew { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var presets = await localStorage.GetItemAsync<List<SplitsTablePreset>>("SplitsTablePresets");
-        if (presets != null)
+        if (presets != null && presets.Any())
         {
-            savedPresets = presets;
-        }
-
-        // Try to load the last viewed preset
-        var lastViewedPresetName = await localStorage.GetItemAsync<string>(LastViewedPresetKey);
-        if (!string.IsNullOrEmpty(lastViewedPresetName) && savedPresets.Any(p => p.Name == lastViewedPresetName))
-        {
-            selectedPresetName = lastViewedPresetName;
-            LoadPreset();
+            foreach (var preset in presets)
+            {
+                var vm = new PresetViewModel { Preset = preset };
+                RecalculatePreset(vm);
+                presetViewModels.Add(vm);
+            }
         }
         else
         {
-            // Initialize default time entries if no preset loaded
-            timeEntries = new List<TimeEntry>
+            AddDefaultPresets();
+        }
+    }
+
+    private void AddDefaultPresets()
+    {
+        var defaults = new[]
+        {
+            new SplitsTablePreset
+            {
+                Name = "800m",
+                Distance = 800,
+                TimeEntries = new List<TimeEntry>
+                {
+                    new TimeEntry { Name = "", TotalMinutes = 2, TotalSeconds = 0 },
+                    new TimeEntry { Name = "", TotalMinutes = 2, TotalSeconds = 10 },
+                    new TimeEntry { Name = "", TotalMinutes = 2, TotalSeconds = 20 },
+                    new TimeEntry { Name = "", TotalMinutes = 2, TotalSeconds = 30 }
+                },
+                SplitDistances = new List<int> { 200, 400 }
+            },
+            new SplitsTablePreset
+            {
+                Name = "1600m",
+                Distance = 1600,
+                TimeEntries = new List<TimeEntry>
+                {
+                    new TimeEntry { Name = "", TotalMinutes = 4, TotalSeconds = 30 },
+                    new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 },
+                    new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 30 },
+                    new TimeEntry { Name = "", TotalMinutes = 6, TotalSeconds = 0 }
+                },
+                SplitDistances = new List<int> { 200, 400, 800 }
+            },
+            new SplitsTablePreset
+            {
+                Name = "3200m",
+                Distance = 3200,
+                TimeEntries = new List<TimeEntry>
+                {
+                    new TimeEntry { Name = "", TotalMinutes = 9, TotalSeconds = 30 },
+                    new TimeEntry { Name = "", TotalMinutes = 10, TotalSeconds = 30 },
+                    new TimeEntry { Name = "", TotalMinutes = 11, TotalSeconds = 30 },
+                    new TimeEntry { Name = "", TotalMinutes = 12, TotalSeconds = 30 }
+                },
+                SplitDistances = new List<int> { 200, 400, 800, 1600 }
+            }
+        };
+
+        foreach (var preset in defaults)
+        {
+            var vm = new PresetViewModel { Preset = preset, IsSettingsExpanded = false, IsNew = true };
+            RecalculatePreset(vm);
+            presetViewModels.Add(vm);
+        }
+    }
+
+    private void AddNewPreset()
+    {
+        var preset = new SplitsTablePreset
+        {
+            Name = "",
+            Distance = 1600,
+            TimeEntries = new List<TimeEntry>
             {
                 new TimeEntry { Name = "", TotalMinutes = 4, TotalSeconds = 30 },
                 new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 },
                 new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 30 },
                 new TimeEntry { Name = "", TotalMinutes = 6, TotalSeconds = 0 }
-            };
-
-            CalculateSplits();
-        }
-    }
-
-    private void SetDistance(int dist)
-    {
-        distance = dist;
-        CalculateSplits();
-    }
-
-    private void AddTimeEntry()
-    {
-        timeEntries.Add(new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 });
-        CalculateSplits();
-    }
-
-    private void RemoveTimeEntry(TimeEntry entry)
-    {
-        timeEntries.Remove(entry);
-        CalculateSplits();
-    }
-
-    private void AddSplitDistance()
-    {
-        if (newSplitDistance > 0 && !splitDistances.Contains(newSplitDistance))
-        {
-            splitDistances.Add(newSplitDistance);
-            splitDistances = splitDistances.OrderBy(d => d).ToList();
-            CalculateSplits();
-        }
-    }
-
-    private void RemoveSplitDistance(int distance)
-    {
-        splitDistances.Remove(distance);
-        CalculateSplits();
-    }
-
-    private void CalculateSplits()
-    {
-        calculations.Clear();
-        foreach (var entry in timeEntries)
-        {
-            var calc = SplitCalculation.Calculate(entry, distance, splitDistances);
-            calculations.Add(calc);
-        }
-    }
-
-    private async Task OnPresetChanged()
-    {
-        if (!string.IsNullOrEmpty(selectedPresetName))
-        {
-            await localStorage.SetItemAsync(LastViewedPresetKey, selectedPresetName);
-            LoadPreset();
-        }
-    }
-
-    private void LoadPreset()
-    {
-        isAdminExpanded = false;
-        var preset = savedPresets.FirstOrDefault(p => p.Name == selectedPresetName);
-        if (preset != null)
-        {
-            distance = preset.Distance;
-            timeEntries = preset.TimeEntries.Select(e => new TimeEntry 
-            { 
-                Name = e.Name, 
-                TotalMinutes = e.TotalMinutes, 
-                TotalSeconds = e.TotalSeconds 
-            }).ToList();
-            splitDistances = new List<int>(preset.SplitDistances);
-            presetName = preset.Name;
-            CalculateSplits();
-        }
-    }
-
-    private async Task SavePreset()
-    {
-        if (string.IsNullOrWhiteSpace(presetName))
-        {
-            ToastService.ShowWarning("Please enter a preset name");
-            return;
-        }
-
-        var preset = new SplitsTablePreset
-        {
-            Name = presetName,
-            Distance = distance,
-            TimeEntries = new List<TimeEntry>(timeEntries.Select(e => new TimeEntry 
-            { 
-                Name = e.Name, 
-                TotalMinutes = e.TotalMinutes, 
-                TotalSeconds = e.TotalSeconds 
-            })),
-            SplitDistances = new List<int>(splitDistances)
+            },
+            SplitDistances = new List<int> { 200, 400, 800 }
         };
-
-        var existingIndex = savedPresets.FindIndex(p => p.Name == presetName);
-        if (existingIndex >= 0)
-        {
-            savedPresets[existingIndex] = preset;
-        }
-        else
-        {
-            savedPresets.Add(preset);
-        }
-
-        await localStorage.SetItemAsync("SplitsTablePresets", savedPresets);
-        await localStorage.SetItemAsync(LastViewedPresetKey, presetName);
-        ToastService.ShowSuccess($"Preset '{presetName}' saved");
-        selectedPresetName = presetName;
+        var vm = new PresetViewModel { Preset = preset, IsSettingsExpanded = true, IsNew = true };
+        RecalculatePreset(vm);
+        presetViewModels.Add(vm);
     }
 
-    private async Task DeletePreset()
+    private void ToggleSettings(PresetViewModel vm)
     {
-        var preset = savedPresets.FirstOrDefault(p => p.Name == selectedPresetName);
-        if (preset != null)
+        vm.IsSettingsExpanded = !vm.IsSettingsExpanded;
+    }
+
+    private void RecalculatePreset(PresetViewModel vm)
+    {
+        vm.Calculations = vm.Preset.TimeEntries
+            .Select(e => SplitCalculation.Calculate(e, vm.Preset.Distance, vm.Preset.SplitDistances))
+            .ToList();
+    }
+
+    private void AddTimeEntryToPreset(PresetViewModel vm)
+    {
+        vm.Preset.TimeEntries.Add(new TimeEntry { Name = "", TotalMinutes = 5, TotalSeconds = 0 });
+        RecalculatePreset(vm);
+    }
+
+    private void RemoveTimeEntryFromPreset(PresetViewModel vm, TimeEntry entry)
+    {
+        vm.Preset.TimeEntries.Remove(entry);
+        RecalculatePreset(vm);
+    }
+
+    private void AddSplitToPreset(PresetViewModel vm)
+    {
+        if (vm.NewSplitDistance > 0 && !vm.Preset.SplitDistances.Contains(vm.NewSplitDistance))
         {
-            savedPresets.Remove(preset);
-            await localStorage.SetItemAsync("SplitsTablePresets", savedPresets);
-            
-            // Clear the last viewed preset if it's the one being deleted
-            var lastViewed = await localStorage.GetItemAsync<string>(LastViewedPresetKey);
-            if (lastViewed == selectedPresetName)
-            {
-                await localStorage.RemoveItemAsync(LastViewedPresetKey);
-            }
-            
-            ToastService.ShowSuccess($"Preset '{selectedPresetName}' deleted");
-            selectedPresetName = "";
-            presetName = "Default";
+            vm.Preset.SplitDistances.Add(vm.NewSplitDistance);
+            vm.Preset.SplitDistances = vm.Preset.SplitDistances.OrderBy(d => d).ToList();
+            RecalculatePreset(vm);
         }
+    }
+
+    private void RemoveSplitFromPreset(PresetViewModel vm, int dist)
+    {
+        vm.Preset.SplitDistances.Remove(dist);
+        RecalculatePreset(vm);
+    }
+
+    private async Task SavePresetViewModel(PresetViewModel vm)
+    {
+        var presets = await localStorage.GetItemAsync<List<SplitsTablePreset>>("SplitsTablePresets") ?? new List<SplitsTablePreset>();
+        var existingIndex = presets.FindIndex(p => p.Name == vm.Preset.Name);
+        if (existingIndex >= 0)
+            presets[existingIndex] = vm.Preset;
+        else
+            presets.Add(vm.Preset);
+
+        await localStorage.SetItemAsync("SplitsTablePresets", presets);
+        await localStorage.SetItemAsync(LastViewedPresetKey, vm.Preset.Name);
+        vm.IsNew = false;
+        vm.IsSettingsExpanded = false;
+        ToastService.ShowSuccess($"Preset '{vm.Preset.Name}' saved");
+    }
+
+    private async Task DeletePresetViewModel(PresetViewModel vm)
+    {
+        if (!vm.IsNew)
+        {
+            var presets = await localStorage.GetItemAsync<List<SplitsTablePreset>>("SplitsTablePresets") ?? new List<SplitsTablePreset>();
+            presets.RemoveAll(p => p.Name == vm.Preset.Name);
+            await localStorage.SetItemAsync("SplitsTablePresets", presets);
+
+            var lastViewed = await localStorage.GetItemAsync<string>(LastViewedPresetKey);
+            if (lastViewed == vm.Preset.Name)
+                await localStorage.RemoveItemAsync(LastViewedPresetKey);
+
+            ToastService.ShowSuccess($"Preset '{vm.Preset.Name}' deleted");
+        }
+        presetViewModels.Remove(vm);
     }
 }
