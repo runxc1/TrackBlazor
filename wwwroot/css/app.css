@@ -81,6 +81,17 @@ div.splitCont .flexCont:nth-child(odd) {
     flex-wrap: nowrap;
     align-content: flex-start;
 }
+.home-page {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.timer-grid {
+    padding-top: 10px;
+    min-height: 75vh;
+    display: grid;
+    gap: 0.25rem;
+}
 div.take-split {
     border: 1px solid var(--accent-fill-rest);
 }
@@ -94,6 +105,37 @@ div.splitCont {
 div.splitCont > *{
     padding-left: 3px;
 }
+.fill-page-timer-grid {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+.fill-page-timer-grid .timer-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+}
+.fill-page-timer-grid .take-split {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+}
+.fill-page-timer-grid .timer-card-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+.fill-page-timer-grid .splitCont {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0 -3px;
+}
 .bottom-button {
     height: 50px;
     font-size: 18px
@@ -106,7 +148,7 @@ header.header {
 }
 
 .main {
-    min-height: calc(100dvh - 86px);
+    height: calc(100dvh - 40px);
     color: var(--neutral-foreground-rest);
     align-items: stretch !important;
 }
@@ -115,12 +157,19 @@ header.header {
     align-self: stretch;
     height: unset !important;
     display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
 }
 
 .content {
     padding: 0.5rem 1.5rem;
     align-self: stretch !important;
-    flex: 0 0 100%;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
 }
 
 footer {
