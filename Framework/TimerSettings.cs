@@ -14,6 +14,8 @@ namespace TrackBlazor.Framework
 
         public bool DisplayTrending { get; set; } = true;
 
+        public bool UseScrollableSplitPanelGrid { get; set; } = false;
+
         public Decimal TrendingSplitDistance { get; set; } = 400;
         public Decimal TrendingTotalDistance { get; set; } = 1600;
 
